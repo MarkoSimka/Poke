@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:poke/screens/login_screen.dart';
 import 'package:poke/screens/register_screen.dart';
+import 'package:poke/screens/splash_screen.dart';
 import 'firebase_options.dart';
 import 'package:poke/home.dart';
 
@@ -28,11 +29,12 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
-      initialRoute: 'Login',
+      initialRoute: 'SplashScreen',
       routes: {
         'Home': (context) => const HomeScreen(),
         'Login': (context) => const Login(),
         'Register': (context) => const Register(),
+        'SplashScreen': (context) => const SplashScreen(),
       },
     );
   }
