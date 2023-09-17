@@ -3,7 +3,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:poke/screens/login_screen.dart';
 import 'package:poke/screens/register_screen.dart';
 import 'firebase_options.dart';
-// import 'package:poke/screens/home.dart';
+import 'package:poke/home.dart';
 
 Future<void> main() async {
   runApp(const MyApp());
@@ -30,9 +30,9 @@ class MyApp extends StatelessWidget {
       ),
       initialRoute: 'Login',
       routes: {
-        'Home': (context) => HomeScreen(), //Home
-        'Login': (context) => const Login(), // Login
-        'Register': (context) => const Register(), // Register
+        'Home': (context) => const HomeScreen(),
+        // 'Login': (context) => const LoginScreen(), // Login
+        // 'Register': (context) => const RegisterScreen(), // Login
       },
     );
   }
