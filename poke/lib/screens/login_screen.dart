@@ -1,5 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:poke/home.dart';
 import 'package:poke/screens/register_screen.dart';
 
 class Login extends StatefulWidget {
@@ -21,7 +22,7 @@ class _LoginState extends State<Login> {
     try {
       await FirebaseAuth.instance.signInWithEmailAndPassword(email: _emailTextController.text, password: _passwordTextController.text)
           .then((value) =>
-          Navigator.push(context, MaterialPageRoute(builder: (context) => MyHomePage()))
+          Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const HomeScreen()))
         );
     } on FirebaseAuthException catch (e) {
       loginFail = true;
@@ -100,7 +101,7 @@ class _LoginState extends State<Login> {
         GestureDetector(
             onTap: () {
               Navigator.push(
-                  context, MaterialPageRoute(builder: (context) => Register()));
+                  context, MaterialPageRoute(builder: (context) => const Register()));
             },
             child: const Text(
               " Sign Up",

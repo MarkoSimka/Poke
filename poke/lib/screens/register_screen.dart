@@ -1,5 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:poke/home.dart';
 
 class Register extends StatefulWidget {
   const Register({super.key});
@@ -19,7 +20,7 @@ class _RegisterState extends State<Register> {
           email: _emailTextController.text,
           password: _passwordTextController.text)
           .then((value) =>
-            Navigator.push(context, MaterialPageRoute(builder: (context) => MyHomePage()))
+            Navigator.push(context, MaterialPageRoute(builder: (context) => const HomeScreen()))
         );
     }on FirebaseAuthException catch (e){
       print("ERROR!");

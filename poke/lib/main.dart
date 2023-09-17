@@ -31,8 +31,8 @@ class MyApp extends StatelessWidget {
       initialRoute: 'Login',
       routes: {
         'Home': (context) => const HomeScreen(),
-        // 'Login': (context) => const LoginScreen(), // Login
-        // 'Register': (context) => const RegisterScreen(), // Login
+        'Login': (context) => const Login(),
+        'Register': (context) => const Register(),
       },
     );
   }
