@@ -1,7 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:poke/screens/addgroup.dart';
-import 'package:poke/screens/homepage.dart';
+import 'package:poke/screens/add_group_screen.dart';
+import 'package:poke/screens/home_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});

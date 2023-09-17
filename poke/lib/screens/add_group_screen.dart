@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:poke/screens/addgroup.dart';
+import 'package:poke/screens/add_group_screen.dart';
 
 class AddGroupPage extends StatefulWidget {
   const AddGroupPage({super.key});
