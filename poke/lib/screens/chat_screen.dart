@@ -1,8 +1,12 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:poke/home.dart';
 import 'package:poke/models/chat_message.dart';
+import 'package:poke/models/group.dart';
 import 'package:poke/models/send_menu_items.dart';
 import 'package:poke/widgets/chat_bubble.dart';
-import 'package:poke/widgets/chat_details_appBar.dart';
+import 'package:poke/widgets/chat_details_appbar.dart';
 
 enum MessageType {
   Sender,
@@ -10,23 +14,26 @@ enum MessageType {
 }
 
 class ChatPage extends StatefulWidget {
-  const ChatPage({super.key});
+  final Group group;
+  final String? groupId;
+  const ChatPage({super.key, required this.group, required this.groupId});
 
   @override
   State<ChatPage> createState() => _ChatPageState();
 }
 
 class _ChatPageState extends State<ChatPage> {
-  List<ChatMessage> chatMessage = [
-    ChatMessage(message: "Hi John", type: MessageType.Reciever),
-    ChatMessage(message: "Hope you are doing good", type: MessageType.Reciever),
-    ChatMessage(
-        message: "Hello Jane, I'm good what about you?",
-        type: MessageType.Sender),
-    ChatMessage(
-        message: "I'm fine, working from home", type: MessageType.Reciever),
-    ChatMessage(message: "Oh! Nice. Same here", type: MessageType.Sender),
-  ];
+  // Moch data
+  // List<ChatMessage> chatMessage = [
+  //   ChatMessage(message: "Hi John", type: MessageType.Reciever),
+  //   ChatMessage(message: "Hope you are doing good", type: MessageType.Reciever),
+  //   ChatMessage(
+  //       message: "Hello Jane, I'm good what about you?",
+  //       type: MessageType.Sender),
+  //   ChatMessage(
+  //       message: "I'm fine, working from home", type: MessageType.Reciever),
+  //   ChatMessage(message: "Oh! Nice. Same here", type: MessageType.Sender),
+  // ];
 
   List<SendMenuItems> sendMenuItems = [
     SendMenuItems(
@@ -101,82 +108,298 @@ class _ChatPageState extends State<ChatPage> {
         });
   }
 
+  final messageController = TextEditingController();
+  final FirebaseAuth auth = FirebaseAuth.instance;
+
+  @override
+  void dispose() {
+    messageController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _sendMessage() async {
+    final User? user = auth.currentUser;
+    final uid = user?.uid;
+    CollectionReference messages =
+        FirebaseFirestore.instance.collection('messages');
+    print("Sending messages");
+    await messages
+        .add({
+          'message': messageController.text,
+          'timestamp': Timestamp.fromDate(DateTime.now()),
+          'userId': uid,
+          'groupId': widget.groupId,
+        })
+        .then((value) => print("Message sent"))
+        .catchError((error) => print("Failed to add group: $error"));
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: const ChatDetails(),
-      backgroundColor: const Color.fromRGBO(94, 109, 177, 1),
-      body: Stack(
-        children: <Widget>[
-          ListView.builder(
-            itemCount: chatMessage.length,
-            shrinkWrap: true,
-            padding: const EdgeInsets.only(top: 10, bottom: 10),
-            physics: const NeverScrollableScrollPhysics(),
-            itemBuilder: (context, index) {
-              return ChatBubble(
-                chatMessage: chatMessage[index],
-              );
-            },
-          ),
-          Align(
-            alignment: Alignment.bottomLeft,
-            child: Container(
-              padding: const EdgeInsets.only(left: 16, bottom: 10),
-              height: 80,
-              width: double.infinity,
-              color: Colors.white,
-              child: Row(
+      appBar: ChatDetails(group: widget.group),
+      body: StreamBuilder(
+        stream: FirebaseFirestore.instance
+            .collection("messages")
+            .where('groupId', isEqualTo: widget.groupId)
+            .snapshots(),
+        builder: (context, AsyncSnapshot<QuerySnapshot> snapshot) {
+          if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+            return Container(
+              decoration: const BoxDecoration(
+                  gradient: LinearGradient(
+                colors: [Color.fromRGBO(94, 109, 177, 1), Colors.white],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              )),
+              child: Stack(
                 children: <Widget>[
-                  GestureDetector(
-                    onTap: () {
-                      showModal();
-                    },
+                  const Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text('No messages, say hi!', style: TextStyle(color: Colors.white),),
+                        ],
+                      ),
+                    ],
+                  ),
+                  Align(
+                    alignment: Alignment.bottomLeft,
                     child: Container(
-                      height: 40,
-                      width: 40,
-                      decoration: BoxDecoration(
-                        color: Colors.blueGrey,
-                        borderRadius: BorderRadius.circular(30),
-                      ),
-                      child: const Icon(
-                        Icons.add,
-                        color: Colors.white,
-                        size: 21,
+                      padding: const EdgeInsets.only(left: 16, bottom: 10),
+                      height: 80,
+                      width: double.infinity,
+                      color: Colors.white,
+                      child: Row(
+                        children: <Widget>[
+                          GestureDetector(
+                            onTap: () {
+                              showModal();
+                            },
+                            child: Container(
+                              height: 40,
+                              width: 40,
+                              decoration: BoxDecoration(
+                                color: Colors.blueGrey,
+                                borderRadius: BorderRadius.circular(30),
+                              ),
+                              child: const Icon(
+                                Icons.add,
+                                color: Colors.white,
+                                size: 21,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(
+                            width: 16,
+                          ),
+                          Expanded(
+                            child: TextField(
+                              controller: messageController,
+                              decoration: InputDecoration(
+                                  hintText: "Type message...",
+                                  hintStyle:
+                                      TextStyle(color: Colors.grey.shade500),
+                                  border: InputBorder.none),
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   ),
-                  const SizedBox(
-                    width: 16,
-                  ),
-                  Expanded(
-                    child: TextField(
-                      decoration: InputDecoration(
-                          hintText: "Type message...",
-                          hintStyle: TextStyle(color: Colors.grey.shade500),
-                          border: InputBorder.none),
+                  Align(
+                    alignment: Alignment.bottomRight,
+                    child: Container(
+                      padding: const EdgeInsets.only(right: 30, bottom: 50),
+                      child: FloatingActionButton(
+                        onPressed: _sendMessage,
+                        backgroundColor: const Color.fromRGBO(242, 100, 25, 1),
+                        elevation: 0,
+                        child: const Icon(
+                          Icons.send,
+                          color: Colors.white,
+                        ),
+                      ),
                     ),
-                  ),
+                  )
                 ],
               ),
-            ),
-          ),
-          Align(
-            alignment: Alignment.bottomRight,
-            child: Container(
-              padding: const EdgeInsets.only(right: 30, bottom: 50),
-              child: FloatingActionButton(
-                onPressed: () {},
-                backgroundColor: Colors.pink,
-                elevation: 0,
-                child: const Icon(
-                  Icons.send,
-                  color: Colors.white,
-                ),
+            );
+          } else if (snapshot.connectionState == ConnectionState.waiting) {
+            return Container(
+              decoration: const BoxDecoration(
+                  gradient: LinearGradient(
+                colors: [Color.fromRGBO(94, 109, 177, 1), Colors.white],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              )),
+              child: Stack(
+                children: <Widget>[
+                  const CircularProgressIndicator(),
+                  Align(
+                    alignment: Alignment.bottomLeft,
+                    child: Container(
+                      padding: const EdgeInsets.only(left: 16, bottom: 10),
+                      height: 80,
+                      width: double.infinity,
+                      color: Colors.white,
+                      child: Row(
+                        children: <Widget>[
+                          GestureDetector(
+                            onTap: () {
+                              showModal();
+                            },
+                            child: Container(
+                              height: 40,
+                              width: 40,
+                              decoration: BoxDecoration(
+                                color: Colors.blueGrey,
+                                borderRadius: BorderRadius.circular(30),
+                              ),
+                              child: const Icon(
+                                Icons.add,
+                                color: Colors.white,
+                                size: 21,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(
+                            width: 16,
+                          ),
+                          Expanded(
+                            child: TextField(
+                              controller: messageController,
+                              decoration: InputDecoration(
+                                  hintText: "Type message...",
+                                  hintStyle:
+                                      TextStyle(color: Colors.grey.shade500),
+                                  border: InputBorder.none),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  Align(
+                    alignment: Alignment.bottomRight,
+                    child: Container(
+                      padding: const EdgeInsets.only(right: 30, bottom: 50),
+                      child: FloatingActionButton(
+                        onPressed: _sendMessage,
+                        backgroundColor: const Color.fromRGBO(242, 100, 25, 1),
+                        elevation: 0,
+                        child: const Icon(
+                          Icons.send,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ),
+                  )
+                ],
               ),
-            ),
-          )
-        ],
+            );
+          } else {
+            var messages = snapshot.data?.docs.toList();
+            messages?.sort((a, b) {
+              return a['timestamp'].compareTo(b['timestamp']);
+            });
+            return Container(
+              decoration: const BoxDecoration(
+                  gradient: LinearGradient(
+                colors: [Color.fromRGBO(94, 109, 177, 1), Colors.white],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              )),
+              child: Stack(
+                children: <Widget>[
+                  ListView.builder(
+                    itemCount: messages?.length,
+                    shrinkWrap: true,
+                    padding: const EdgeInsets.only(top: 10, bottom: 10),
+                    physics: const NeverScrollableScrollPhysics(),
+                    itemBuilder: (context, index) {
+                      var message = messages?[index];
+                      var data = message?.data() as Map<String, dynamic>;
+                      var chatMessage = ChatMessage.fromFirestore(data);
+                      final User? user = auth.currentUser;
+                      final uid = user?.uid;
+                      if (chatMessage.userId == uid) {
+                        chatMessage.type = MessageType.Sender;
+                      } else {
+                        chatMessage.type = MessageType.Reciever;
+                      }
+
+                      return ChatBubble(
+                        chatMessage: chatMessage,
+                      );
+                    },
+                  ),
+                  Align(
+                    alignment: Alignment.bottomLeft,
+                    child: Container(
+                      padding: const EdgeInsets.only(left: 16, bottom: 10),
+                      height: 80,
+                      width: double.infinity,
+                      color: Colors.white,
+                      child: Row(
+                        children: <Widget>[
+                          GestureDetector(
+                            onTap: () {
+                              showModal();
+                            },
+                            child: Container(
+                              height: 40,
+                              width: 40,
+                              decoration: BoxDecoration(
+                                color: Colors.blueGrey,
+                                borderRadius: BorderRadius.circular(30),
+                              ),
+                              child: const Icon(
+                                Icons.add,
+                                color: Colors.white,
+                                size: 21,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(
+                            width: 16,
+                          ),
+                          Expanded(
+                            child: TextField(
+                              controller: messageController,
+                              decoration: InputDecoration(
+                                  hintText: "Type message...",
+                                  hintStyle:
+                                      TextStyle(color: Colors.grey.shade500),
+                                  border: InputBorder.none),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  Align(
+                    alignment: Alignment.bottomRight,
+                    child: Container(
+                      padding: const EdgeInsets.only(right: 30, bottom: 50),
+                      child: FloatingActionButton(
+                        onPressed: _sendMessage,
+                        backgroundColor: const Color.fromRGBO(242, 100, 25, 1),
+                        elevation: 0,
+                        child: const Icon(
+                          Icons.send,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ),
+                  )
+                ],
+              ),
+            );
+          }
+        },
       ),
     );
   }

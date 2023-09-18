@@ -1,11 +1,25 @@
 import 'package:flutter/material.dart';
+import 'package:poke/models/group.dart';
 
-class ChatDetails extends StatelessWidget implements PreferredSizeWidget {
-  const ChatDetails({super.key});
+class ChatDetails extends StatefulWidget implements PreferredSizeWidget {
+  final Group group;
+  const ChatDetails({super.key, required this.group});
 
+  @override
+  State<ChatDetails> createState() => _ChatDetailsState();
+  
+  @override
+  Size get preferredSize => const Size.fromHeight(100);
+}
+
+class _ChatDetailsState extends State<ChatDetails> {
   @override
   Widget build(BuildContext context) {
     const IconData person = IconData(0xe491, fontFamily: 'MaterialIcons',);
+    String status = "Offline";
+    if(widget.group.status){
+      status = "Online";
+    }
 
     return AppBar(
       elevation: 0,
@@ -32,21 +46,21 @@ class ChatDetails extends StatelessWidget implements PreferredSizeWidget {
               const SizedBox(
                 width: 12,
               ),
-              const Expanded(
+              Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: <Widget>[
                     Text(
-                      "Jane Russel",
-                      style: TextStyle(fontWeight: FontWeight.w600),
+                      widget.group.name,
+                      style: const TextStyle(fontWeight: FontWeight.w600),
                     ),
-                    SizedBox(
+                    const SizedBox(
                       height: 6,
                     ),
                     Text(
-                      "Online",
-                      style: TextStyle(color: Colors.green, fontSize: 12),
+                      status,
+                      style: TextStyle(color: widget.group.status ? Colors.green : Colors.red , fontSize: 12),
                     ),
                   ],
                 ),
