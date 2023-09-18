@@ -1,6 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:geocoding/geocoding.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:poke/home.dart';
 import 'package:poke/models/chat_message.dart';
 import 'package:poke/models/group.dart';
@@ -23,6 +25,7 @@ class ChatPage extends StatefulWidget {
 }
 
 class _ChatPageState extends State<ChatPage> {
+  String? _address = "";
   // Moch data
   // List<ChatMessage> chatMessage = [
   //   ChatMessage(message: "Hi John", type: MessageType.Reciever),
@@ -39,12 +42,60 @@ class _ChatPageState extends State<ChatPage> {
     SendMenuItems(
         text: "Photos & Videos", icons: Icons.image, color: Colors.amber),
     SendMenuItems(
-        text: "Photos & Videos2", icons: Icons.image, color: Colors.amber),
-    SendMenuItems(
-        text: "Photos & Videos3", icons: Icons.image, color: Colors.amber),
-    SendMenuItems(
-        text: "Photos & Videos4", icons: Icons.image, color: Colors.amber),
+        text: "Send location",
+        icons: Icons.location_on_sharp,
+        color: Colors.amber)
   ];
+
+  Future<void> _sendLocation() async {
+    final User? user = auth.currentUser;
+    final uid = user?.uid;
+    CollectionReference messages =
+        FirebaseFirestore.instance.collection('messages');
+    await _getCurrentLocation();
+    await messages
+        .add({
+          'message': _address,
+          'timestamp': Timestamp.fromDate(DateTime.now()),
+          'userId': uid,
+          'groupId': widget.groupId,
+        })
+        .then((value) => {
+          messageController.text = "",
+          Navigator.pop(context)
+        })
+        .catchError((error) => print("Failed to add group: $error"));
+  }
+
+  Future<void> requestLocationPermission() async {
+    LocationPermission permission = await Geolocator.requestPermission();
+    if (permission == LocationPermission.denied) {
+      print("Permissions denied");
+    }
+  }
+
+  Future<void> _getCurrentLocation() async {
+    try {
+      await requestLocationPermission();
+      Position position = await Geolocator.getCurrentPosition(
+          desiredAccuracy: LocationAccuracy.high);
+
+      // Fetch the address
+      List<Placemark> placemarks =
+          await placemarkFromCoordinates(position.latitude, position.longitude);
+
+      // Extract the address
+      Placemark place = placemarks[0];
+      setState(() {
+        _address = "${place.street}, ${place.locality}, ${place.country}";
+      });
+    } catch (e) {
+      print(e);
+      setState(() {
+        _address = 'Could not fetch address';
+      });
+    }
+  }
 
   void showModal() {
     showModalBottomSheet(
@@ -78,25 +129,27 @@ class _ChatPageState extends State<ChatPage> {
                   ListView.builder(
                     itemCount: sendMenuItems.length,
                     shrinkWrap: true,
-                    physics: const NeverScrollableScrollPhysics(),
                     itemBuilder: (context, index) {
-                      return Container(
-                        padding: const EdgeInsets.only(top: 10, bottom: 10),
-                        child: ListTile(
-                          leading: Container(
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(30),
-                              color: sendMenuItems[index].color.shade50,
+                      return InkWell(
+                        onTap: _sendLocation,
+                        child: Container(
+                          padding: const EdgeInsets.only(top: 10, bottom: 10),
+                          child: ListTile(
+                            leading: Container(
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(30),
+                                color: sendMenuItems[index].color.shade50,
+                              ),
+                              height: 50,
+                              width: 50,
+                              child: Icon(
+                                sendMenuItems[index].icons,
+                                size: 20,
+                                color: sendMenuItems[index].color.shade400,
+                              ),
                             ),
-                            height: 50,
-                            width: 50,
-                            child: Icon(
-                              sendMenuItems[index].icons,
-                              size: 20,
-                              color: sendMenuItems[index].color.shade400,
-                            ),
+                            title: Text(sendMenuItems[index].text),
                           ),
-                          title: Text(sendMenuItems[index].text),
                         ),
                       );
                     },
@@ -110,6 +163,12 @@ class _ChatPageState extends State<ChatPage> {
 
   final messageController = TextEditingController();
   final FirebaseAuth auth = FirebaseAuth.instance;
+
+  @override
+  void initState() {
+    super.initState();
+    _getCurrentLocation();
+  }
 
   @override
   void dispose() {
@@ -130,7 +189,7 @@ class _ChatPageState extends State<ChatPage> {
           'userId': uid,
           'groupId': widget.groupId,
         })
-        .then((value) => print("Message sent"))
+        .then((value) => messageController.text = "")
         .catchError((error) => print("Failed to add group: $error"));
   }
 
@@ -160,7 +219,10 @@ class _ChatPageState extends State<ChatPage> {
                       Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Text('No messages, say hi!', style: TextStyle(color: Colors.white),),
+                          Text(
+                            'No messages, say hi!',
+                            style: TextStyle(color: Colors.white),
+                          ),
                         ],
                       ),
                     ],
@@ -314,27 +376,29 @@ class _ChatPageState extends State<ChatPage> {
               )),
               child: Stack(
                 children: <Widget>[
-                  ListView.builder(
-                    itemCount: messages?.length,
-                    shrinkWrap: true,
-                    padding: const EdgeInsets.only(top: 10, bottom: 10),
-                    physics: const NeverScrollableScrollPhysics(),
-                    itemBuilder: (context, index) {
-                      var message = messages?[index];
-                      var data = message?.data() as Map<String, dynamic>;
-                      var chatMessage = ChatMessage.fromFirestore(data);
-                      final User? user = auth.currentUser;
-                      final uid = user?.uid;
-                      if (chatMessage.userId == uid) {
-                        chatMessage.type = MessageType.Sender;
-                      } else {
-                        chatMessage.type = MessageType.Reciever;
-                      }
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 80.0),
+                    child: ListView.builder(
+                      itemCount: messages?.length,
+                      shrinkWrap: true,
+                      padding: const EdgeInsets.only(top: 10, bottom: 10),
+                      itemBuilder: (context, index) {
+                        var message = messages?[index];
+                        var data = message?.data() as Map<String, dynamic>;
+                        var chatMessage = ChatMessage.fromFirestore(data);
+                        final User? user = auth.currentUser;
+                        final uid = user?.uid;
+                        if (chatMessage.userId == uid) {
+                          chatMessage.type = MessageType.Sender;
+                        } else {
+                          chatMessage.type = MessageType.Reciever;
+                        }
 
-                      return ChatBubble(
-                        chatMessage: chatMessage,
-                      );
-                    },
+                        return ChatBubble(
+                          chatMessage: chatMessage,
+                        );
+                      },
+                    ),
                   ),
                   Align(
                     alignment: Alignment.bottomLeft,
