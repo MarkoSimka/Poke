@@ -1,5 +1,7 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:poke/home.dart';
 
 class AddGroupPage extends StatefulWidget {
   const AddGroupPage({super.key});
@@ -21,6 +23,10 @@ class _AddGroupPageState extends State<AddGroupPage> {
   }
 
   Future<void> _addGroup() async {
+    final FirebaseAuth auth = FirebaseAuth.instance;
+    final User? user = auth.currentUser;
+    final uid = user?.uid;
+    List<String?> userIds = [uid];
     CollectionReference groups =
         FirebaseFirestore.instance.collection('groups');
 
@@ -30,9 +36,11 @@ class _AddGroupPageState extends State<AddGroupPage> {
           'name': nameController.text,
           'description': descriptionController.text,
           'status': isChecked,
+          'userIds': userIds,
           'image': null,
         })
-        .then((value) => print("Group Added"))
+        .then((value) => Navigator.push(context,
+            MaterialPageRoute(builder: (context) => const HomeScreen())))
         .catchError((error) => print("Failed to add group: $error"));
   }
 
@@ -71,10 +79,15 @@ class _AddGroupPageState extends State<AddGroupPage> {
                 padding: const EdgeInsets.all(15),
                 child: TextField(
                   controller: nameController,
+                  cursorColor: const Color.fromRGBO(242, 100, 25, 1),
                   decoration: const InputDecoration(
                       border: OutlineInputBorder(
                           borderSide:
                               BorderSide(width: 3, color: Colors.white)),
+                      focusedBorder: OutlineInputBorder(
+                        borderSide: BorderSide(
+                            width: 3, color: Color.fromRGBO(242, 100, 25, 1)),
+                      ),
                       enabledBorder: OutlineInputBorder(
                           borderSide:
                               BorderSide(width: 3, color: Colors.white)),
@@ -85,17 +98,37 @@ class _AddGroupPageState extends State<AddGroupPage> {
               Padding(
                 padding: const EdgeInsets.all(15),
                 child: TextField(
+                  cursorColor: const Color.fromRGBO(242, 100, 25, 1),
                   controller: descriptionController,
                   decoration: const InputDecoration(
                       border: OutlineInputBorder(
-                          borderSide:
-                              BorderSide(width: 3, color: Colors.white)),
+                        borderSide: BorderSide(width: 3, color: Colors.white),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderSide: BorderSide(
+                            width: 3, color: Color.fromRGBO(242, 100, 25, 1)),
+                      ),
                       enabledBorder: OutlineInputBorder(
                           borderSide:
                               BorderSide(width: 3, color: Colors.white)),
                       labelText: 'Enter group description',
                       labelStyle: TextStyle(color: Colors.white)),
                 ),
+              ),
+              CheckboxListTile(
+                title: const Text(
+                  "Active: ",
+                  style: TextStyle(color: Colors.white),
+                ),
+                checkColor: Colors.white,
+                fillColor: MaterialStateProperty.resolveWith(getColor),
+                value: isChecked,
+                controlAffinity: ListTileControlAffinity.leading,
+                onChanged: (bool? value) {
+                  setState(() {
+                    isChecked = value!;
+                  });
+                },
               ),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 45.0),
@@ -117,18 +150,6 @@ class _AddGroupPageState extends State<AddGroupPage> {
                         ),
                       ],
                     )),
-              ),
-              CheckboxListTile(
-                title: const Text("Active: ", style: TextStyle(color: Colors.white),),
-                checkColor: Colors.white,
-                fillColor: MaterialStateProperty.resolveWith(getColor),
-                value: isChecked,
-                controlAffinity: ListTileControlAffinity.leading,
-                onChanged: (bool? value) {
-                  setState(() {
-                    isChecked = value!;
-                  });
-                },
               ),
             ],
           ),

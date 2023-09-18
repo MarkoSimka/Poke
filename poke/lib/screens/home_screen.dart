@@ -1,5 +1,7 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:poke/models/group.dart';
+import 'package:poke/screens/chat_screen.dart';
 import 'package:poke/widgets/group_widget.dart';
 import 'package:firebase_core/firebase_core.dart';
 import '../firebase_options.dart';
@@ -14,16 +16,21 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   // Moch data
-  final List<Group> _groups = [
-    Group(name: "Grupa 1", description: "Description 1", status: true),
-    Group(name: "Grupa 2", description: "Description 2", status: false),
-  ];
+  // final List<Group> _groups = [
+  //   Group(name: "Grupa 1", description: "Description 1", status: true, userIds: []),
+  //   Group(name: "Grupa 2", description: "Description 2", status: false, userIds: []),
+  // ];
 
   @override
   Widget build(BuildContext context) {
+    final FirebaseAuth auth = FirebaseAuth.instance;
+    final User? user = auth.currentUser;
+    final uid = user?.uid;
     return Scaffold(
       body: StreamBuilder(
-          stream: FirebaseFirestore.instance.collection('groups').snapshots(),
+          stream: FirebaseFirestore.instance
+              .collection('groups')
+              .where('userIds', arrayContainsAny: [uid]).snapshots(),
           builder: (context, AsyncSnapshot<QuerySnapshot> snapshot) {
             if (snapshot.hasData || snapshot.data!.docs.isNotEmpty) {
               var documents = snapshot.data?.docs;
@@ -43,11 +50,9 @@ class _HomePageState extends State<HomePage> {
                         var document = documents?[index];
                         var data = document?.data() as Map<String, dynamic>;
                         var group = Group.fromFirestore(data);
-                        return Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            GroupWidget(group: group),
-                          ],
+                        return GroupWidget(
+                          group: group,
+                          groupId: document?.id,
                         );
                       }),
                 ),
