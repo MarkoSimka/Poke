@@ -39,7 +39,7 @@ class _AddGroupPageState extends State<AddGroupPage> {
           'userIds': userIds,
           'image': null,
         })
-        .then((value) => Navigator.push(context,
+        .then((value) => Navigator.pushReplacement(context,
             MaterialPageRoute(builder: (context) => const HomeScreen())))
         .catchError((error) => print("Failed to add group: $error"));
   }
