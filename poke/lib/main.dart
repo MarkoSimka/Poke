@@ -7,11 +7,10 @@ import 'firebase_options.dart';
 import 'package:poke/home.dart';
 
 Future<void> main() async {
-  runApp(const MyApp());
-  
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
+  runApp(const MyApp());
 }
 
 class MyApp extends StatelessWidget {
@@ -29,7 +28,7 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
-      initialRoute: 'SplashScreen',
+      initialRoute: 'Home',
       routes: {
         'Home': (context) => const HomeScreen(),
         'Login': (context) => const Login(),
