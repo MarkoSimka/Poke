@@ -15,7 +15,6 @@ class ChatMessage {
       required this.userId});
 
   factory ChatMessage.fromFirestore(Map<String, dynamic> data) {
-    print(data['timestamp']);
     return ChatMessage(
         message: data['message'],
         groupId: data['groupId'],

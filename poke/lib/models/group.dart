@@ -12,7 +12,6 @@ class Group {
       required this.userIds});
 
   factory Group.fromFirestore(Map<String, dynamic> data) {
-    print(data['userIds']);
     return Group(
         name: data['name'],
         description: data['description'],

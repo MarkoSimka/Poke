@@ -1,8 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:poke/models/app_user.dart';
+import 'package:poke/screens/account_screen.dart';
 import 'package:poke/screens/add_group_screen.dart';
-import 'package:poke/screens/chat_screen.dart';
 import 'package:poke/screens/home_screen.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -18,6 +18,7 @@ class _HomeScreenState extends State<HomeScreen> {
   final List<Widget> _navPages = [
     const HomePage(),
     const AddGroupPage(),
+    const AccountPage()
   ];
 
   void _navigateBottomNavBar(int index) {
@@ -31,23 +32,6 @@ class _HomeScreenState extends State<HomeScreen> {
 
   CollectionReference users = FirebaseFirestore.instance.collection('users');
 
-  Future<void> addUser() {
-    // Call the user's CollectionReference to add a new user
-    AppUser user = AppUser(
-        id: 1,
-        name: 'test',
-        nickName: 'testche',
-        email: 'test@test.com',
-        group_ids: []);
-    // Convert the Product object to a map.
-    Map<String, dynamic> userData = user.toMap();
-    return users
-        .add(userData)
-        .then(
-            (value) => print("Product added to Firestore with ID: ${value.id}"))
-        .catchError((error) => print("Failed to add user: $error"));
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -59,12 +43,6 @@ class _HomeScreenState extends State<HomeScreen> {
             Text("Poke"),
           ],
         ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.logout),
-            onPressed: addUser,
-          ),
-        ],
       ),
       body: _navPages[_selectedIndex],
       bottomNavigationBar:
