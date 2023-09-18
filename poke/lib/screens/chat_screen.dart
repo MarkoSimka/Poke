@@ -105,6 +105,7 @@ class _ChatPageState extends State<ChatPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: const ChatDetails(),
+      backgroundColor: const Color.fromRGBO(94, 109, 177, 1),
       body: Stack(
         children: <Widget>[
           ListView.builder(
