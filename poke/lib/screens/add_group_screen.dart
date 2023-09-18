@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:poke/screens/add_group_screen.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class AddGroupPage extends StatefulWidget {
   const AddGroupPage({super.key});
@@ -9,21 +9,129 @@ class AddGroupPage extends StatefulWidget {
 }
 
 class _AddGroupPageState extends State<AddGroupPage> {
+  bool isChecked = false;
+  final nameController = TextEditingController();
+  final descriptionController = TextEditingController();
+
+  @override
+  void dispose() {
+    nameController.dispose();
+    descriptionController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _addGroup() async {
+    CollectionReference groups =
+        FirebaseFirestore.instance.collection('groups');
+
+    // Call the user's CollectionReference to add a new user
+    return await groups
+        .add({
+          'name': nameController.text,
+          'description': descriptionController.text,
+          'status': isChecked,
+          'image': null,
+        })
+        .then((value) => print("Group Added"))
+        .catchError((error) => print("Failed to add group: $error"));
+  }
+
   @override
   Widget build(BuildContext context) {
-    return const Scaffold(
-      body: Padding(
-        padding: EdgeInsets.symmetric(vertical: 16.0),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.start,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text("Add group"),
-              ],
-            ),
-          ],
+    Color getColor(Set<MaterialState> states) {
+      const Set<MaterialState> interactiveStates = <MaterialState>{
+        MaterialState.pressed,
+        MaterialState.hovered,
+        MaterialState.focused,
+      };
+      if (states.any(interactiveStates.contains)) {
+        return const Color.fromRGBO(94, 109, 177, 1);
+      }
+      return const Color.fromRGBO(94, 109, 177, 1);
+    }
+
+    return Scaffold(
+      body: Container(
+        decoration: const BoxDecoration(
+            gradient: LinearGradient(
+          colors: [Color.fromRGBO(94, 109, 177, 1), Colors.white],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        )),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 16.0),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.start,
+            children: <Widget>[
+              const Text(
+                "Create new group",
+                style: TextStyle(fontSize: 25.0, color: Colors.white),
+              ),
+              Padding(
+                padding: const EdgeInsets.all(15),
+                child: TextField(
+                  controller: nameController,
+                  decoration: const InputDecoration(
+                      border: OutlineInputBorder(
+                          borderSide:
+                              BorderSide(width: 3, color: Colors.white)),
+                      enabledBorder: OutlineInputBorder(
+                          borderSide:
+                              BorderSide(width: 3, color: Colors.white)),
+                      labelText: 'Enter group name',
+                      labelStyle: TextStyle(color: Colors.white)),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.all(15),
+                child: TextField(
+                  controller: descriptionController,
+                  decoration: const InputDecoration(
+                      border: OutlineInputBorder(
+                          borderSide:
+                              BorderSide(width: 3, color: Colors.white)),
+                      enabledBorder: OutlineInputBorder(
+                          borderSide:
+                              BorderSide(width: 3, color: Colors.white)),
+                      labelText: 'Enter group description',
+                      labelStyle: TextStyle(color: Colors.white)),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 45.0),
+                child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.white,
+                    ),
+                    onPressed: _addGroup,
+                    child: const Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          Icons.add,
+                          color: Colors.black,
+                        ),
+                        Text(
+                          "Add group ",
+                          style: TextStyle(color: Colors.black),
+                        ),
+                      ],
+                    )),
+              ),
+              CheckboxListTile(
+                title: const Text("Active: ", style: TextStyle(color: Colors.white),),
+                checkColor: Colors.white,
+                fillColor: MaterialStateProperty.resolveWith(getColor),
+                value: isChecked,
+                controlAffinity: ListTileControlAffinity.leading,
+                onChanged: (bool? value) {
+                  setState(() {
+                    isChecked = value!;
+                  });
+                },
+              ),
+            ],
+          ),
         ),
       ),
     );

@@ -53,6 +53,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        backgroundColor: const Color.fromRGBO(65, 86, 117, 1),
         title: const Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
@@ -67,15 +68,22 @@ class _HomeScreenState extends State<HomeScreen> {
         ],
       ),
       body: _navPages[_selectedIndex],
-      bottomNavigationBar: BottomNavigationBar(
+      bottomNavigationBar:
+        BottomNavigationBar(
+          backgroundColor: const Color.fromRGBO(65, 86, 117, 1),
           currentIndex: _selectedIndex,
           onTap: _navigateBottomNavBar,
           type: BottomNavigationBarType.fixed,
+          unselectedItemColor: Colors.white,
+          unselectedFontSize: 14,
+          selectedItemColor: const Color.fromRGBO(242, 100, 25, 1),
+          selectedFontSize: 14,
           items: const <BottomNavigationBarItem>[
-            BottomNavigationBarItem(icon: Icon(Icons.home), label: "Home"),
-            BottomNavigationBarItem(icon: Icon(Icons.add), label: "Add"),
-            BottomNavigationBarItem(icon: Icon(Icons.person), label: "Account"),
-          ]),
+            BottomNavigationBarItem(icon: Icon(Icons.home, color: Colors.white), label: "Home"),
+            BottomNavigationBarItem(icon: Icon(Icons.add, color: Colors.white), label: "Add"),
+            BottomNavigationBarItem(icon: Icon(Icons.person, color: Colors.white), label: "Account"),
+          ]
+      ),
     );
   }
 }
