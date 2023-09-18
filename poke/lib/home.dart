@@ -18,7 +18,6 @@ class _HomeScreenState extends State<HomeScreen> {
   final List<Widget> _navPages = [
     const HomePage(),
     const AddGroupPage(),
-    const ChatPage(),
   ];
 
   void _navigateBottomNavBar(int index) {
