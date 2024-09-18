@@ -107,10 +107,4 @@ Make sure to include these packages in your pubspec.yaml file.
 
 Contributions to this project are welcome. Feel free to open issues or pull requests to suggest improvements or report bugs.
 
-##  License
-
-This project is licensed under the MIT License.
-
-Thank you for choosing "Poke". We hope this application serves as a valuable resource for your chat application development needs. If you have any questions or need further assistance, please don't hesitate to reach out.
-
 Happy coding!
